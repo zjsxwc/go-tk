@@ -47,7 +47,7 @@ func Eval( script string ) bool {
 	return C.Tcl_Eval( Interp, C.CString(script) ) == C.TCL_OK
 }
 
-func ResultString() string {
+func Result() string {
 	return C.GoString(C.Tcl_GetStringResult(Interp))
 }
 
@@ -79,20 +79,27 @@ func (tk *tk) MainWindow() C.Tk_Window {
 //Tk options////////////////////////////////////////////////////////////////////
 func (tk *tk) WindowingSystem() string {
 	Eval("tk windowingsystem")
-	return ResultString()
+	return Result()
 }
 func (tk *tk) AppName() string {
 	Eval("tk appname")
-	return ResultString()
+	return Result()
 }
 func (tk *tk) SetAppName(name string) {
 	Eval("tk appname " + name)
+}
+func (tk *tk) Wm(window string, command string, opt ...interface{}) {
+	cmd := []string{"wm", command, window}
+	for _,o := range opt {
+		cmd = append(cmd, fmt.Sprint(o))
+	}
+	Eval(strings.Join(cmd, " "))
 }
 
 //window options////////////////////////////////////////////////////////////////
 func (tk *tk) Option(id string, name string, class string) string {
 	Eval("option get " + id + " " + name + " " + class)
-	return ResultString()
+	return Result()
 }
 //widget options////////////////////////////////////////////////////////////////
 func (tk *tk) Configure(id string, name string, val interface{}) {
@@ -155,7 +162,7 @@ func (tk *tk) MessageBox(typ string, title string, msg string, detailMsg string,
 	if icon != "" { cmd += " -icon " + icon }
 	if defaultButton != "" { cmd += " -default " + defaultButton }
 	Eval(cmd)
-	return ResultString()
+	return Result()
 }
 
 
@@ -229,7 +236,7 @@ func (w *Widget) Pack(typ string, parent interface{}, opt ...interface{}) *Widge
 
 func (w *Widget) CGet(opt string) string {
 	Eval(w.Id + " cget -" + opt)
-	return ResultString()
+	return Result()
 }
 func (w *Widget) CSet(opt ...interface{}) *Widget {
 	cmd := []string{w.Id,"configure"}
