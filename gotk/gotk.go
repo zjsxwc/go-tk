@@ -1,12 +1,22 @@
 package gotk
 
-import ( "fmt"; "strings" )
+import ( "fmt"; "strings"; )//"unsafe" )
 
 // #cgo CFLAGS: -I/usr/include/tcl8.6
 // #cgo LDFLAGS: -ltcl8.6 -ltk8.6
 // #include <tcl.h>
 // #include <tk.h>
+// #include <stdio.h>
+// extern void CmdDispatch(unsigned int cb);
+// static inline int CmdCallback(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+//    CmdDispatch((unsigned int)clientData);
+//    return 0;
+// }
+// static inline void RegisterCmd(Tcl_Interp *interp, char *cmdName, unsigned int cb) {
+//    Tcl_CreateObjCommand( interp, cmdName, CmdCallback, (void *)cb, NULL );
+// }
 import "C"
+
 
 var Interp *C.Tcl_Interp
 
@@ -46,6 +56,7 @@ func ResultString() string {
 type tk struct {
 	wid uint //next widget ID
 	widgets map[string]*Widget
+	cmds []func()
 }
 var Tk = tk{ wid:0, widgets:make(map[string]*Widget) }
 
@@ -100,6 +111,21 @@ func (tk *tk) ById(id string) *Widget {
 	return nil
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//export CmdDispatch
+func CmdDispatch(cb C.uint) {
+	Tk.cmds[cb]()
+}
+func (tk *tk) AddCmd(name string, cb func()) string {
+	if name == "" { name = tk.NewIdS() }
+	if tk.cmds == nil { tk.cmds = make([]func(), 0) }
+	tk.cmds = append(tk.cmds, cb)
+	C.RegisterCmd(Interp, C.CString(name), C.uint(len(tk.cmds)-1))
+	return name
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 //Message boxes/////////////////////////////////////////////////////////////////
 //messagebox types
 const (
@@ -139,6 +165,13 @@ type Widget struct {
 	Id      string //this widget id
 	Parent  string //parent window ID
 	Options map[string]interface{}
+}
+
+func (tk *tk) New(typ string, id string, opts ...interface{}) *Widget {
+	w := Widget{}
+	w.Init(typ, id, opts...)
+	w.Create()
+	return &w
 }
 
 func (w *Widget) Reset() *Widget {
@@ -209,6 +242,14 @@ func (w *Widget) CSet(opt ...interface{}) *Widget {
 	return w
 }
 
+//events and callbacks//////////////////////////////////////////////////////////
+func (w *Widget) Bind(event string, cb func()) *Widget {
+	return w
+}
+func (w *Widget) Cmd(cmd string, cb func()) *Widget {
+	w.CSet(cmd, Tk.AddCmd("", cb))
+	return w
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 type Window struct {

@@ -14,14 +14,17 @@ func main() {
 	//init Tcl and Tk
 	if !gotk.Init(true) { os.Exit(0) }
 
-	w := gotk.Widget{} //create new widget
-	w.Init("label", "", //configure its type and parameters, and pack
-		"text",123,
-		"fg","red",
-		"bg","green",
-		"width",20,
-		"justify","left",
-		"relief","groove").Create().Pack("pack", ".")
+	w := gotk.Tk.New("button", "", //set type, id (empty string for automatic generation
+			"text",123,            //set other parameters
+			"fg","red",
+			"bg","green",
+			"width",20,
+			"justify","left",
+			"relief","groove").
+		Pack("pack", ".").         //pack in root window
+		Cmd("command", func() {    //set callback function
+			fmt.Println("Hello...")
+	})
 	
 	fmt.Println(w.CGet("fg"))        //get option
 	w.CSet("fg","blue", "bg","gray") //set options
