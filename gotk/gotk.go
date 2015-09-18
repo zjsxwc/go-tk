@@ -95,6 +95,14 @@ func (tk *tk) Wm(window string, command string, opt ...interface{}) {
 	}
 	Eval(strings.Join(cmd, " "))
 }
+func (tk *tk) WInfo(window string, command string, opt ...interface{}) string {
+	cmd := []string{"winfo", command, window}
+	for _,o := range opt {
+		cmd = append(cmd, fmt.Sprint(o))
+	}
+	Eval(strings.Join(cmd, " "))
+	return Result()
+}
 
 //window options////////////////////////////////////////////////////////////////
 func (tk *tk) Option(id string, name string, class string) string {
@@ -153,13 +161,13 @@ const (
 )
 //display message box and return result
 func (tk *tk) MessageBox(typ string, title string, msg string, detailMsg string, icon string, defaultButton string, parent string) string {
-	if (parent == "") { parent = "." }
+	if (parent == "")      { parent = "." }
 	cmd := "tk_messageBox -parent " + parent
-	if typ != "" { cmd += " -type " + typ }
-	if title != "" { cmd += " -title " + title }
-	if msg != "" { cmd += " -message " + msg }
-	if detailMsg != "" { cmd += " -detail " + detailMsg }
-	if icon != "" { cmd += " -icon " + icon }
+	if typ != ""           { cmd += " -type " + typ }
+	if title != ""         { cmd += " -title " + title }
+	if msg != ""           { cmd += " -message " + msg }
+	if detailMsg != ""     { cmd += " -detail " + detailMsg }
+	if icon != ""          { cmd += " -icon " + icon }
 	if defaultButton != "" { cmd += " -default " + defaultButton }
 	Eval(cmd)
 	return Result()
