@@ -10,7 +10,7 @@ Example:
 ``` go
 package main
 
-import ( "gotk"; "os"; "fmt";  )
+import ( "github.com/edartuz/go-tk/gotk"; "os"; "fmt";  )
 
 func main() {
 	//init Tcl and Tk
