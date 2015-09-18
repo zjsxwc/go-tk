@@ -3,6 +3,8 @@ gotk
 
 Go-Tk GUI binding
 
+Donate: ** Paypal edartuz@gmail.com **
+
 Example:
 
 ``` go
